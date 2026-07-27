@@ -1,0 +1,122 @@
+{
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-07-27T17:45:17+02:00",
+    "name": "Rimworld (rwmt Multiplayer)",
+    "author": "lauriichan@playuniverse.org",
+    "description": "A rimworld server setup egg",
+    "features": [],
+    "docker_images": {
+        "ghcr.io\/ptero-eggs\/yolks:dotnet_8": "ghcr.io\/ptero-eggs\/yolks:dotnet_8"
+    },
+    "file_denylist": [],
+    "startup": "dotnet exec Server.dll",
+    "config": {
+        "files": "{\r\n    \"settings.toml\": {\r\n        \"parser\": \"file\",\r\n        \"find\": {\r\n            \"gameName\": \"gameName = \\\"{{env.RW_GAME_NAME}}\\\"\",\r\n            \"directAddress\": \"directAddress = \\\"0.0.0.0:{{server.build.default.port}}\\\"\",\r\n            \"direct =\": \"direct = true\",\r\n            \"maxPlayers\": \"maxPlayers = {{env.RW_MAX_PLAYERS}}\",\r\n            \"hasPassword\": \"hasPassword = \\\"{{env.RW_PASSWORD_REQUIRED}}\\\"\",\r\n            \"password\": \"password = \\\"{{env.RW_PASSWORD}}\\\"\",\r\n            \"multifaction\": \"multifaction = {{env.RW_MULTIFACTION}}\",\r\n            \"asyncTime\": \"asyncTime = {{env.RW_ASYNC_TIME}}\",\r\n            \"timeControl\": \"timeControl = \\\"{{env.RW_TIME_CONTROL}}\\\"\",\r\n            \"syncConfigs\": \"syncConfigs = {{env.RW_SYNC_CONFIGS}}\"\r\n        }\r\n    }\r\n}",
+        "startup": "{\r\n    \"done\": \"Loaded state from Saved\/\"\r\n}",
+        "logs": "{}",
+        "stop": "stop"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\ncd \/mnt\/server\r\n\r\nif [ \"$RW_MULTIPLAYER_VERSION\" == \"beta\" ]; then\r\n    RW_MULTIPLAYER_VERSION=\"continuous\"\r\nelif [[ \"$RW_MULTIPLAYER_VERSION\" != v* ]]; then\r\n    RW_MULTIPLAYER_VERSION=\"v${RW_MULTIPLAYER_VERSION}\"\r\nfi\r\n\r\n# Fetch the download URL for the Server asset\r\nDOWNLOAD_URL=$(curl -s \"https:\/\/api.github.com\/repos\/rwmt\/Multiplayer\/releases\/tags\/$RW_MULTIPLAYER_VERSION\" \\\r\n    | grep \"browser_download_url\" \\\r\n    | cut -d '\"' -f 4 \\\r\n    | grep -i -m 1 \"Server.*\\.zip$\")\r\n\r\nif [ -z \"$DOWNLOAD_URL\" ]; then\r\n    echo \"Error: Could not find a Server zip asset for version $RW_MULTIPLAYER_VERSION.\"\r\n    exit 1\r\nfi\r\n\r\necho \"Downloading Multiplayer server version $RW_MULTIPLAYER_VERSION...\"\r\ncurl -L -o \"server.zip\" \"$DOWNLOAD_URL\"\r\nunzip -o \"server.zip\"\r\nrm \"server.zip\"\r\n\r\nmv Server\/Linux\/* .\r\nrm -rf Server\r\n\r\ncat << EOF > settings.toml\r\ngameName = \"${RW_GAME_NAME}\"\r\nlanAddress = \"127.0.0.1\"\r\ndirectAddress = \"0.0.0.0:${SERVER_PORT}\"\r\nmaxPlayers = ${RW_MAX_PLAYERS}\r\nautosaveInterval = 1.0\r\nautosaveUnit = \"Days\"\r\nsteam = false\r\ndirect = true\r\nlan = false\r\nasyncTime = ${RW_ASYNC_TIME}\r\nmultifaction = ${RW_MULTIFCATION}\r\ndebugMode = false\r\ndesyncTraces = true\r\nsyncConfigs = ${RW_SYNC_CONFIGS}\r\nautoJoinPoint = \"Join, Desync\"\r\ndevModeScope = \"HostOnly\"\r\nhasPassword = ${RW_PASSWORD_REQUIRED}\r\npassword = \"${RW_PASSWORD}\"\r\npauseOnLetter = \"AnyThreat\"\r\npauseOnJoin = true\r\npauseOnDesync = true\r\ntimeControl = \"${RW_TIME_CONTROL}\"\r\nEOF",
+            "container": "ghcr.io\/ptero-eggs\/installers:debian",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Game Name",
+            "description": "The name of the game",
+            "env_variable": "RW_GAME_NAME",
+            "default_value": "Game",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:32",
+            "field_type": "text"
+        },
+        {
+            "name": "Max Players",
+            "description": "The max amount of players allowed to be connected",
+            "env_variable": "RW_MAX_PLAYERS",
+            "default_value": "8",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:2",
+            "field_type": "text"
+        },
+        {
+            "name": "Sync Configs",
+            "description": "If configs should be synchornized",
+            "env_variable": "RW_SYNC_CONFIGS",
+            "default_value": "true",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|in:true,false",
+            "field_type": "text"
+        },
+        {
+            "name": "Password",
+            "description": "Game password",
+            "env_variable": "RW_PASSWORD",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "string|nullable",
+            "field_type": "text"
+        },
+        {
+            "name": "Password required",
+            "description": "If a password should be enabled",
+            "env_variable": "RW_PASSWORD_REQUIRED",
+            "default_value": "false",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|in:true,false",
+            "field_type": "text"
+        },
+        {
+            "name": "Multifaction",
+            "description": "If multiple factions should be creatable",
+            "env_variable": "RW_MULTIFACTION",
+            "default_value": "false",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|in:true,false",
+            "field_type": "text"
+        },
+        {
+            "name": "Async Time",
+            "description": "If time should be asynchronous in tiles",
+            "env_variable": "RW_ASYNC_TIME",
+            "default_value": "false",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|in:true,false",
+            "field_type": "text"
+        },
+        {
+            "name": "Time Control",
+            "description": "Who should be able to control time",
+            "env_variable": "RW_TIME_CONTROL",
+            "default_value": "EveryoneControls",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|in:EveryoneControls,LowestWins,HostOnly",
+            "field_type": "text"
+        },
+        {
+            "name": "Multiplayer Version",
+            "description": "The multiplayer version to install\r\n\r\nUse 'beta' for Continous.",
+            "env_variable": "RW_MULTIPLAYER_VERSION",
+            "default_value": "beta",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|min:4",
+            "field_type": "text"
+        }
+    ]
+}
